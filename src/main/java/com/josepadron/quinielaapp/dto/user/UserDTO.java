@@ -1,6 +1,7 @@
 package com.josepadron.quinielaapp.dto.user;
 
 import com.josepadron.quinielaapp.models.user.User;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,15 @@ import org.springframework.stereotype.Service;
 @Setter
 public class UserDTO {
     private Long id;
+
+    @NotNull
+    @NotBlank
+    @Size(min = 2, max = 150)
     private String name;
+
+    @NotNull
+    @NotBlank
+    @Email(regexp = ".+@.+\\..+")
     private String email;
 
     public UserDTO() {}
