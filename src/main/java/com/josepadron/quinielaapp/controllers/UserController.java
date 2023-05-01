@@ -1,6 +1,7 @@
 package com.josepadron.quinielaapp.controllers;
 
 import com.josepadron.quinielaapp.dto.user.UserDTO;
+import com.josepadron.quinielaapp.exceptions.EmailAlreadyExistsException;
 import com.josepadron.quinielaapp.models.user.User;
 import com.josepadron.quinielaapp.services.user.UserService;
 import jakarta.validation.Valid;
@@ -23,23 +24,34 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDto) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDto) throws Exception {
         User user = UserDTO.toModel(userDto);
         user = userService.createUser(user);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(UserDTO.toDTO(user));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+
+        return ResponseEntity.ok().build();
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    @ExceptionHandler({MethodArgumentNotValidException.class, EmailAlreadyExistsException.class})
+    public Map<String, String> handleValidationExceptions(Exception ex) {
         Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
+        if (ex instanceof MethodArgumentNotValidException) {
+            ((MethodArgumentNotValidException) ex).getBindingResult().getAllErrors().forEach((error) -> {
+                String fieldName = ((FieldError) error).getField();
+                String errorMessage = error.getDefaultMessage();
+                errors.put(fieldName, errorMessage);
+            });
+        } else if (ex instanceof EmailAlreadyExistsException) {
+            errors.put("email", ex.getMessage());
+        }
 
         return errors;
     }

@@ -2,6 +2,7 @@ package com.josepadron.quinielaapp.repositories.user;
 
 import com.josepadron.quinielaapp.models.user.User;
 import com.josepadron.quinielaapp.repositories.CrudRepositoryI;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class UserRepository implements CrudRepositoryI<User, Long>{
@@ -37,6 +39,17 @@ public class UserRepository implements CrudRepositoryI<User, Long>{
         SqlParameterSource paramMap = new MapSqlParameterSource("id", id);
 
         return jdbc.queryForObject(sql, paramMap, new UserRowMapper());
+    }
+
+    public Optional<User> findByEmail(String email) {
+        try {
+            String sql = "SELECT * FROM users WHERE email = :email";
+            SqlParameterSource paramMap = new MapSqlParameterSource("email", email);
+
+            return Optional.ofNullable(jdbc.queryForObject(sql, paramMap, new UserRowMapper()));
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
     }
 
     @Override

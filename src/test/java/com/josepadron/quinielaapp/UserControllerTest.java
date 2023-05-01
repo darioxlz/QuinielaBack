@@ -41,6 +41,9 @@ public class UserControllerTest {
 
         assertThat(createdUser.getName()).isEqualTo(user.getName());
         assertThat(createdUser.getEmail()).isEqualTo(user.getEmail());
+
+        ResponseEntity<Void> responseDelete = restTemplate.exchange("/user/" + createdUser.getId(), HttpMethod.DELETE, null, Void.class);
+        assertThat(responseDelete.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
