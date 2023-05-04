@@ -5,6 +5,8 @@ import com.josepadron.quinielaapp.exceptions.EmailAlreadyExistsException;
 import com.josepadron.quinielaapp.models.user.User;
 import com.josepadron.quinielaapp.services.user.UserService;
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+    private static final Logger LOGGER = LogManager.getLogger(UserController.class);
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -25,6 +28,7 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDto) throws Exception {
+        LOGGER.info("llega request");
         User user = UserDTO.toModel(userDto);
         user = userService.createUser(user);
 
