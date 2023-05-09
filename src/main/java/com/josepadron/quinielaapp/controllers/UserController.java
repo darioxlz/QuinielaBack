@@ -1,5 +1,6 @@
 package com.josepadron.quinielaapp.controllers;
 
+import com.josepadron.quinielaapp.dto.user.UserCreateDTO;
 import com.josepadron.quinielaapp.dto.user.UserDTO;
 import com.josepadron.quinielaapp.exceptions.EmailAlreadyExistsException;
 import com.josepadron.quinielaapp.models.user.User;
@@ -27,9 +28,9 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDto) throws Exception {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserCreateDTO userCreateDto) throws Exception {
         LOGGER.info("llega request");
-        User user = UserDTO.toModel(userDto);
+        User user = UserCreateDTO.toModel(userCreateDto);
         user = userService.createUser(user);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(UserDTO.toDTO(user));

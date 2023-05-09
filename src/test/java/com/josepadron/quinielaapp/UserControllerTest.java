@@ -28,6 +28,7 @@ public class UserControllerTest {
         User user = new User();
         user.setName("John Doe");
         user.setEmail("johndoe@example.com");
+        user.setPassword("12345678");
 
         HttpEntity<User> request = new HttpEntity<>(user, headers);
 
@@ -54,6 +55,7 @@ public class UserControllerTest {
         User user = new User();
         user.setName("a");
         user.setEmail("b");
+        user.setPassword("3");
 
         HttpEntity<User> request = new HttpEntity<>(user, headers);
         ResponseEntity<User> response = restTemplate.postForEntity("/user/create", request, User.class);

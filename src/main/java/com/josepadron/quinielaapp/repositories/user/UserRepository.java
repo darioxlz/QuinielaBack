@@ -54,13 +54,14 @@ public class UserRepository implements CrudRepositoryI<User, Long>{
 
     @Override
     public User save(User user) {
-        String sql = "INSERT INTO users (name, email) VALUES (?, ?)";
+        String sql = "INSERT INTO users (name, email, password, created_at, updated_at) VALUES (?, ?, ?, now(), now())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPassword());
 
             return ps;
         }, keyHolder);
