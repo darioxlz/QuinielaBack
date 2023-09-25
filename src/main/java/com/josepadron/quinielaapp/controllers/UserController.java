@@ -2,7 +2,8 @@ package com.josepadron.quinielaapp.controllers;
 
 import com.josepadron.quinielaapp.dto.user.UserCreateDTO;
 import com.josepadron.quinielaapp.dto.user.UserDTO;
-import com.josepadron.quinielaapp.exceptions.EmailAlreadyExistsException;
+import com.josepadron.quinielaapp.exceptions.UserDontExistsException;
+import com.josepadron.quinielaapp.exceptions.UserEmailAlreadyExistsException;
 import com.josepadron.quinielaapp.models.user.User;
 import com.josepadron.quinielaapp.services.user.UserService;
 import jakarta.validation.Valid;
@@ -27,9 +28,16 @@ public class UserController {
         this.userService = userService;
     }
 
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDTO> getUser(@PathVariable("userId") Long userId) throws Exception {
+        User user = userService.getUser(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(user));
+    }
+
     @PostMapping("/create")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserCreateDTO userCreateDto) throws Exception {
-        LOGGER.info("llega request");
         User user = UserCreateDTO.toModel(userCreateDto);
         user = userService.createUser(user);
 
@@ -44,7 +52,7 @@ public class UserController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({MethodArgumentNotValidException.class, EmailAlreadyExistsException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class, UserEmailAlreadyExistsException.class, UserDontExistsException.class})
     public Map<String, String> handleValidationExceptions(Exception ex) {
         Map<String, String> errors = new HashMap<>();
 
@@ -54,8 +62,10 @@ public class UserController {
                 String errorMessage = error.getDefaultMessage();
                 errors.put(fieldName, errorMessage);
             });
-        } else if (ex instanceof EmailAlreadyExistsException) {
+        } else if (ex instanceof UserEmailAlreadyExistsException) {
             errors.put("email", ex.getMessage());
+        } else if (ex instanceof UserDontExistsException) {
+            errors.put("message", ex.getMessage());
         }
 
         return errors;

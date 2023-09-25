@@ -34,11 +34,15 @@ public class UserRepository implements CrudRepositoryI<User, Long>{
     }
 
     @Override
-    public User findById(Long id) {
-        String sql = "SELECT * FROM users WHERE id = :id";
-        SqlParameterSource paramMap = new MapSqlParameterSource("id", id);
+    public Optional<User> findById(Long id) {
+        try {
+            String sql = "SELECT * FROM users WHERE id = :id";
+            SqlParameterSource paramMap = new MapSqlParameterSource("id", id);
 
-        return jdbc.queryForObject(sql, paramMap, new UserRowMapper());
+            return Optional.ofNullable(jdbc.queryForObject(sql, paramMap, new UserRowMapper()));
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
     }
 
     public Optional<User> findByEmail(String email) {
@@ -69,7 +73,7 @@ public class UserRepository implements CrudRepositoryI<User, Long>{
         Integer id = (Integer) keyHolder.getKeys().get("id");
         user.setId(id.longValue());
 
-        return findById(user.getId());
+        return user;
     }
 
     @Override
