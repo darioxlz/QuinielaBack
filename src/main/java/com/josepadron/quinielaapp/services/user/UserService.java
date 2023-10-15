@@ -7,6 +7,7 @@ import com.josepadron.quinielaapp.repositories.user.UserRepository;
 import com.josepadron.quinielaapp.utils.StringEncryptor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -15,6 +16,10 @@ public class UserService {
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public List<User> getUsers() throws Exception {
+        return userRepository.findAll();
     }
 
     public User getUser(Long id) throws Exception {
@@ -37,6 +42,11 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isEmpty()) {
+            throw new UserDontExistsException("User dont exists");
+        }
+
         userRepository.deleteById(id);
     }
 }

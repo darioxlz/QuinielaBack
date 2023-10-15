@@ -16,10 +16,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 public class UserController {
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
     private final UserService userService;
@@ -28,10 +30,27 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("")
+    public ResponseEntity<List<UserDTO>> getUsers() throws Exception {
+        List<User> users = userService.getUsers();
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                users.stream()
+                        .map(UserDTO::toDTO)
+                        .collect(Collectors.toList())
+        );
+    }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDTO> getUser(@PathVariable("userId") Long userId) throws Exception {
-        User user = userService.getUser(userId);
+        User user;
+
+        try {
+            user = userService.getUser(userId);
+        } catch (UserDontExistsException e) {
+            ResponseEntity.notFound();
+            throw e;
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(user));
     }
@@ -46,13 +65,18 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        userService.deleteUserById(id);
+        try {
+            userService.deleteUserById(id);
+        } catch (UserDontExistsException e) {
+            ResponseEntity.notFound();
+            throw e;
+        }
 
         return ResponseEntity.ok().build();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({MethodArgumentNotValidException.class, UserEmailAlreadyExistsException.class, UserDontExistsException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class, UserEmailAlreadyExistsException.class})
     public Map<String, String> handleValidationExceptions(Exception ex) {
         Map<String, String> errors = new HashMap<>();
 
@@ -64,7 +88,17 @@ public class UserController {
             });
         } else if (ex instanceof UserEmailAlreadyExistsException) {
             errors.put("email", ex.getMessage());
-        } else if (ex instanceof UserDontExistsException) {
+        }
+
+        return errors;
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler({UserDontExistsException.class})
+    public Map<String, String> handleResourceNotFound(Exception ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        if (ex instanceof UserDontExistsException) {
             errors.put("message", ex.getMessage());
         }
 

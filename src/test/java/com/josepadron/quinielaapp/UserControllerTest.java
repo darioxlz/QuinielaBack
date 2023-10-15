@@ -16,6 +16,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class UserControllerTest {
+    private final static String baseUrl = "/users";
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -32,7 +33,7 @@ public class UserControllerTest {
 
         HttpEntity<User> request = new HttpEntity<>(user, headers);
 
-        ResponseEntity<User> response = restTemplate.postForEntity("/user/create", request, User.class);
+        ResponseEntity<User> response = restTemplate.postForEntity(baseUrl + "/create", request, User.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
@@ -43,7 +44,7 @@ public class UserControllerTest {
         assertThat(createdUser.getName()).isEqualTo(user.getName());
         assertThat(createdUser.getEmail()).isEqualTo(user.getEmail());
 
-        ResponseEntity<Void> responseDelete = restTemplate.exchange("/user/" + createdUser.getId(), HttpMethod.DELETE, null, Void.class);
+        ResponseEntity<Void> responseDelete = restTemplate.exchange(baseUrl + "/" + createdUser.getId(), HttpMethod.DELETE, null, Void.class);
         assertThat(responseDelete.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -58,7 +59,7 @@ public class UserControllerTest {
         user.setPassword("3");
 
         HttpEntity<User> request = new HttpEntity<>(user, headers);
-        ResponseEntity<User> response = restTemplate.postForEntity("/user/create", request, User.class);
+        ResponseEntity<User> response = restTemplate.postForEntity(baseUrl + "/create", request, User.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
