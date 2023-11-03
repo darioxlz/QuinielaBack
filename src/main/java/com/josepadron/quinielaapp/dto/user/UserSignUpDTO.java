@@ -12,9 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Getter
 @Setter
-public class UserCreateDTO {
-    private Long id;
-
+public class UserSignUpDTO {
     @NotNull
     @NotBlank
     @Size(min = 2, max = 150)
@@ -30,16 +28,15 @@ public class UserCreateDTO {
     @Size(min = 8, max = 150)
     private String password;
 
-    public UserCreateDTO() {}
+    public UserSignUpDTO() {}
 
-    public UserCreateDTO(Long id, String name, String email, String password) {
-        this.id = id;
+    public UserSignUpDTO(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
     }
 
-    public static User toModel(UserCreateDTO userCreateDTO) {
-        return new User(userCreateDTO.getId(), userCreateDTO.getName(), userCreateDTO.getEmail(), userCreateDTO.getPassword());
+    public static User toModel(UserSignUpDTO userSignUpDTO) {
+        return new User(userSignUpDTO.getName(), userSignUpDTO.getEmail(), userSignUpDTO.getPassword());
     }
 }

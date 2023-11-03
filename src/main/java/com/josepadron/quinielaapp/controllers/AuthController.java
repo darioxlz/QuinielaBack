@@ -1,57 +1,41 @@
 package com.josepadron.quinielaapp.controllers;
 
-import com.josepadron.quinielaapp.dto.user.UserDTO;
+import com.josepadron.quinielaapp.dao.response.JwtAuthenticationResponse;
+import com.josepadron.quinielaapp.dto.user.UserSignInDTO;
+import com.josepadron.quinielaapp.dto.user.UserSignUpDTO;
 import com.josepadron.quinielaapp.exceptions.UserDontExistsException;
 import com.josepadron.quinielaapp.exceptions.UserEmailAlreadyExistsException;
-import com.josepadron.quinielaapp.models.user.User;
-import com.josepadron.quinielaapp.services.user.UserService;
+import com.josepadron.quinielaapp.services.authentication.AuthenticationService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
-    private final UserService userService;
+@RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
+public class AuthController {
+    private final AuthenticationService authenticationService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @PostMapping("/signup")
+    public ResponseEntity<JwtAuthenticationResponse> signup(@Valid @RequestBody UserSignUpDTO request) throws Exception {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.signup(request));
     }
 
-    @GetMapping("")
-    public ResponseEntity<List<UserDTO>> getUsers() throws Exception {
-        List<User> users = userService.getUsers();
-
-        return ResponseEntity.status(HttpStatus.OK).body(
-                users.stream()
-                        .map(UserDTO::toDTO)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable("userId") Long userId) throws Exception {
-        User user = userService.getUser(userId);
-
-        return ResponseEntity.status(HttpStatus.OK).body(UserDTO.toDTO(user));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        userService.deleteUserById(id);
-
-        return ResponseEntity.ok().build();
+    @PostMapping("/signin")
+    public ResponseEntity<JwtAuthenticationResponse> signin(@Valid @RequestBody UserSignInDTO request) {
+        return ResponseEntity.ok(authenticationService.signin(request));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({MethodArgumentNotValidException.class, UserEmailAlreadyExistsException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class, UserEmailAlreadyExistsException.class, AuthenticationException.class, IllegalArgumentException.class})
     public Map<String, String> handleValidationExceptions(Exception ex) {
         Map<String, String> errors = new HashMap<>();
 
@@ -63,6 +47,8 @@ public class UserController {
             });
         } else if (ex instanceof UserEmailAlreadyExistsException) {
             errors.put("email", ex.getMessage());
+        } else {
+            errors.put("message", ex.getMessage());
         }
 
         return errors;
