@@ -1,0 +1,35 @@
+#   docker compose up --build -d
+version: '3.8'
+
+services:
+  database:
+    env_file: docker/database/.env
+    container_name: database_postgres
+    build:
+      context: ./docker/database/
+      dockerfile: ./Dockerfile
+    ports:
+      - '5432:5432'
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    networks:
+      - spring-postgres
+
+  users_back:
+    depends_on:
+      - database
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./docker/users_back/Dockerfile
+    ports:
+      - '8080:8080'
+    networks:
+      - spring-postgres
+
+volumes:
+  database-data:
+
+networks:
+  spring-postgres:
+    driver: bridge
