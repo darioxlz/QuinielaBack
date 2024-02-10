@@ -15,13 +15,13 @@ services:
     networks:
       - spring-postgres
 
-  users_back:
+  backend:
     depends_on:
       - database
-    platform: linux/amd64
+    platform: linux/arm64/v8
     build:
       context: .
-      dockerfile: ./docker/users_back/Dockerfile
+      dockerfile: docker/backend/Dockerfile
     ports:
       - '8080:8080'
     networks:
